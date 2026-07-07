@@ -1,0 +1,35 @@
+name: multi-isa-bit-identity
+
+on: [push, workflow_dispatch]
+
+env:
+  EXPECTED: 932aed1711971e98c4a26992eb94c4a13e35e3c8308e3bb3e3bf1aac1699eb77
+
+jobs:
+  x86_64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: build and run (x86_64 silicon)
+        run: |
+          uname -m
+          gcc --version | head -1
+          gcc -O2 -ffp-contract=off a1_orbital_kernel.c -lm -o k
+          ./k | tee out.txt
+          HASH=$(sha256sum out.txt | awk '{print $1}')
+          echo "x86_64 hash: $HASH"
+          test "$HASH" = "$EXPECTED" && echo "MATCH ✓" || (echo "MISMATCH ✗" && exit 1)
+
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: build and run (ARM64 physical silicon)
+        run: |
+          uname -m
+          gcc --version | head -1
+          gcc -O2 -ffp-contract=off a1_orbital_kernel.c -lm -o k
+          ./k | tee out.txt
+          HASH=$(sha256sum out.txt | awk '{print $1}')
+          echo "ARM64 hash: $HASH"
+          test "$HASH" = "$EXPECTED" && echo "MATCH ✓" || (echo "MISMATCH ✗" && exit 1)
