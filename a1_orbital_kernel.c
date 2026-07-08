@@ -13,6 +13,13 @@
 #include <math.h>
 #include <string.h>
 #include <stdint.h>
+#ifdef DUMP_STATE
+#include <string.h>
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
+#endif
 
 #define GM_EARTH 3.986004418e14
 #define ISS_R0 6779000.0
@@ -49,6 +56,13 @@ int main(int argc, char** argv) {
         rk4_step(state, dt);
     }
 
+#ifdef DUMP_STATE
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+    fwrite(state, sizeof(double), 6, stdout);
+    return 0;
+#endif
     /* Emit final state with full precision */
     printf("V113R2_A1_FINAL_STATE\n");
     for (int i = 0; i < 6; i++) {
